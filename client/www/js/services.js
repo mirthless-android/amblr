@@ -30,6 +30,22 @@ angular.module ('amblr.services', [])
   return POIs;
 })
 
+.factory('Routes', function($http, $rootScope, ENV) {
+  var Routes = {};
+
+  Routes.getRoutes = function() {
+    console.log('in the Routes factory');
+      return $http.get(ENV.apiEndpoint + '/api/routes/')
+      .then(function(routes) {
+        return routes;
+      })
+      .catch(function(err) {
+        console.log('error in getting routes in services.js: ', err);
+      });
+    };
+  return Routes;
+})
+
 .factory('Location', function($cordovaGeolocation, $ionicLoading) {
 
   var location = {};

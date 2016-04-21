@@ -16,7 +16,6 @@ angular.module('amblr.addPOI', [])
   $scope.getUserID = function() {
     $http.get(ENV.apiEndpoint + '/checkuserid')
     .success(function(data) {
-      console.log(data);
       $rootScope.userID = data;
     })
     .error(function(data) {

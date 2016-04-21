@@ -66,38 +66,52 @@ exports.savePOI = function(req, res) {
   //check if the new POI has a route
   if (req.body['route']) {
     var newRoute = {name: req.body['route']};
-  }
 
-  Route.findOneAsync(newRoute)
-    .then(function(route){
-      //check if route exists
-      if(!route) {
-      // if it doesn't exist, then add it to database so we can get its ID
-        return Route.createAsync(newRoute);
+    // if there is a route, once we extract and save it from body, check db
+    Route.findOneAsync(newRoute)
+      .then(function(route){
+        //check if route exists
+        if(!route) {
+        // if it doesn't exist, then add it to database so we can get its ID
+          return Route.createAsync(newRoute);
+        }
+        // if it did exist then just return it 
+        return route;
+      })
+      .then(function(route) {
+        //receive the route that was returned after creation or finding
+        //pass on the route id to the newPOI object to create new POI
+        newPOI.routeId  = route._id;
+
+        return POI.createAsync(newPOI);
+      }) 
+      .then(function(result) {
+        // logger.info('POI successfully created: ' + result);
+
+        res.status(201);
+        res.json(result);
+      })
+      .catch(function(err) {
+        logger.error('in newPOI save ', err);
+        res.status(400);
+        return res.json(err);
+      });
+  } else {
+    //if no route provided then just add newPOI with no route
+    console.log('there was no route submitted');
+    POI.create(newPOI, function(err, result) {
+      if (err) {
+        logger.error('in newPOI save ', err);
+        res.status(400);
+        return res.json(err);
       }
-      // if it did exist then just return it 
-      return route;
-    })
-    .then(function(route) {
-      console.log('here is the route:', route);
-      //receive the route that was returned after creation or finding
-      //pass on the route id to the newPOI object to create new POI
-      newPOI.routeId  = route._id;
-
-      return POI.createAsync(newPOI);
-    })
-    .then(function(result) {
-      logger.info('POI successfully created: ' + result);
+      console.log('added this POI to db:', newPOI);
+      // logger.info('POI successfully created: ' + result);
 
       res.status(201);
       res.json(result);
     })
-    .catch(function(err) {
-      logger.error('in newPOI save ', err);
-      res.status(400);
-      return res.json(err);
-    });
-    // still need to address situation where no route is given
+  }
 };
 
 
@@ -109,7 +123,7 @@ exports.getAllPOI = function(req, res) {
       return res.json(err);
     } 
       
-    logger.info('Successfully retrieved pois: ' + pois);
+    // logger.info('Successfully retrieved pois: ' + pois);
     res.json(pois); 
   });
 };
