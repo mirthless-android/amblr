@@ -1,5 +1,5 @@
 angular.module('amblr.signin', [])
-.controller('signinCtrl', function($scope, $ionicModal, $http, $location, $ionicPopup, ENV) {
+.controller('signinCtrl', function($scope, $ionicModal, $http, $location, $ionicPopup, $rootScope, ENV) {
   // Form data for the signin modal
   $scope.signinData = {};
 
@@ -9,6 +9,18 @@ angular.module('amblr.signin', [])
   }).then(function(modal) {
     $scope.modal = modal;
   });
+
+  $scope.userID = null;
+
+  $scope.getUserID = function() {
+    $http.get(ENV.apiEndpoint + '/checkuserid')
+    .success(function(data) {
+      $rootScope.userID = data;
+    })
+    .error(function(data) {
+      console.log('error: ' + data);
+    });
+  };
 
   // Triggered in the signin modal to close it
   $scope.closeSignin = function() {
@@ -44,6 +56,7 @@ angular.module('amblr.signin', [])
       .then(function(res) {
         $scope.closeSignin();
         if (res.status === 200) { 
+          $scope.getUserID();
           $location.path('/menu/home');
         } 
       }, function(err) {
