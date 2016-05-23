@@ -1,11 +1,11 @@
-# Amblr
+# Amblr v2.0
 When you’re walking around the city, you want to enjoy the fun and interesting things and avoid the dangerous / gross stuff. Amblr lets you share points of interest with other users and lets you see what other have added. It’s kind of like Waze, but for walkers.
 
 ## Team
 
-  - __Product Owner__: Toben
-  - __Scrum Master__: Alex
-  - __Development Team Members__: Trini, Bryan
+  - __Product Owner__: Tegan Duong
+  - __Scrum Master__: Buck Perley
+  - __Development Team Members__: Jonathan Mah, Vince Boucherie
 
 ## Table of Contents
 
