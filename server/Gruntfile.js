@@ -104,7 +104,7 @@ module.exports = function(grunt) {
         constants: {
           ENV: {
             name: 'development',
-            apiEndpoint: 'http://localhost:443'
+            apiEndpoint: 'https://localhost:443'
           }
         }
       },
@@ -115,7 +115,7 @@ module.exports = function(grunt) {
         constants: {
           ENV: {
             name: 'production',
-            apiEndpoint: 'http://192.241.235.109:443'
+            apiEndpoint: 'https://192.241.235.109:443'
           }
         }
       }
