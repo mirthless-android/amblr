@@ -89,3 +89,9 @@ https.createServer(options, app).listen(port, function(err) {
   console.log('Amblr API server is listening on port: ' + port);
 });
 
+// Redirect from http port 80 to https
+var http = require('http');
+http.createServer(function (req, res) {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+}).listen(80);
