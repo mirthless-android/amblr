@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var morgan = require('morgan');
 var app = module.exports = express();
 var logger = require('./config/logger.js');
+var fs = require('fs');
 var passport = require('passport');
 var https = require('https');
 
