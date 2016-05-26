@@ -14,7 +14,7 @@ var routeRouter = require('./routers/routeRouter.js');
 
 // configuration variables for server port and mongodb URI
 var port = process.env.PORT || 443;
-var dbUri = process.env.MONGOLAB_URI || 'mongodb://localhost/app_database';
+var dbUri = process.env.MONGOLAB_URI || 'mongodb://localhost';
 var env = process.env.NODE_ENV || 'production';
 
 //create connection to mongodb
