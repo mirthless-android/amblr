@@ -5,14 +5,14 @@ var morgan = require('morgan');
 var app = module.exports = express();
 var logger = require('./config/logger.js');
 var passport = require('passport');
-
+var https = require('https');
 
 var poiRouter = require('./routers/poiRouter.js');
 var userRouter = require('./routers/userRouter.js');
 var routeRouter = require('./routers/routeRouter.js');
 
 // configuration variables for server port and mongodb URI
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 443;
 var dbUri = process.env.MONGOLAB_URI || 'mongodb://localhost/app_database';
 var env = process.env.NODE_ENV || 'production';
 
@@ -21,8 +21,6 @@ mongoose.connect(dbUri);
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
 
 // log db connection success or error
 // TODO: update to use winston logging
@@ -60,13 +58,10 @@ app.use('/api/users', userRouter);
 
 app.use('/api/routes', routeRouter);
 
-//listening
-app.listen(port, function(err) {
-  if (err) {
-    return console.log(err);
-  }
-  console.log('Amblr API server is listening on port: ' + port);
-});
+var options = {
+  key: fs.readFileSync('./config/keys/privKey.pem'),
+  cert: fs.readFileSync('./config/keys/cert.pem')
+};
 
 app.get('/checklogin',function(req,res){
   if (req.user) {
@@ -84,3 +79,12 @@ app.get('/checkuserid', function(req, res){
     res.send(null);
   }
 })
+
+// Create an HTTPS service 
+https.createServer(options, app).listen(port, function(err) {
+  if (err) {
+    return console.log(err);
+  }
+  console.log('Amblr API server is listening on port: ' + port);
+});
+
