@@ -10,6 +10,9 @@ enable-menu-with-back-views attribute -->
         <button class='button button-icon button-clear ion-navicon' ng-click='showMenu()'>
         </button>
       </ion-nav-buttons>
+      <ion-nav-buttons side='right'>
+          <img src="../img/star-3.png" ng-drag='true' ng-drag-data="{ type: 'dropMarker' }" ng-center-anchor="false"/>
+      </ion-nav-buttons>
     </ion-nav-bar>
     
     <!-- The ion-nav-view is where our child states (the views of our app) will be inserted and live. 
@@ -26,16 +29,25 @@ enable-menu-with-back-views attribute -->
     <ion-content>
       <ul class='list'>
         <li>
-          <a class='item' menu-close ng-controller='signinCtrl' ng-click='signin()'>Sign In</a>
+          <a class='item' ng-hide='loggedIn' menu-close ng-controller='signinCtrl' ng-click='signin()'>Sign In</a>
         </li>
         <li>
-          <a class='item' menu-close ng-controller='signupCtrl' ng-click='signup()'>Sign Up</a>
+          <a class='item' ng-hide='loggedIn' menu-close ng-controller='signupCtrl' ng-click='signup()'>Sign Up</a>
         </li>
         <li>
-          <a class='item' menu-close href='#/tab/profile'>Profile</a>
+          <a class='item' menu-close ng-show='loggedIn' ng-click='showUserProfileModal()' ng-controller="ProfileCtrl">Profile</a>
         </li>
         <li>
-          <a class='item' menu-close ng-controller='addPOIController' ng-click='openForm()'>Add POI</a>
+          <a class='item' menu-close ng-click='showFilterModal()' ng-controller="routeFilter">Filter POIs by Route</a>
+        </li>
+        <li>
+          <a class='item' ng-show='loggedIn' menu-close ng-click='showRouteManageModal()' ng-controller="routeManage">Manage Routes</a>
+        </li>
+        <li>
+          <!--<a class='item' menu-close ng-click='showRoutesNearMe()' ng-controller="routeFilter"> Filter Routes Near Me </a> -->
+        </li>
+        <li>
+          <a class='item' ng-show='loggedIn' menu-close href='/api/users/signout'>Sign Out</a>
         </li>
       </ul>
     </ion-content>

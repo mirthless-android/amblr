@@ -1,0 +1,25 @@
+<ion-modal-view class="userProfile">
+  <div class="bar bar-header bar-dark">
+    <h1 class="title">My Profile</h1>
+    <div class="buttons">
+      <button class="button button-clear" ng-click="hideUserProfileModal()">Cancel</button>
+    </div>
+  </div>
+  <ion-content class="has-header">
+    <div class="list list-inset">
+      <div class="item">
+        My Routes:
+        <div class="item" ng-repeat="route in myRoutes | unique: 'name'" ng-click="setSelectedRouteOnMap(route._id)">
+          {{ route.name }}
+        </div>
+      </div>
+      <div class="item">
+        My POIs:
+        <div class="item" ng-repeat="poi in myPOIs | unique: '_id'">
+          {{ poi.title }}
+          <p> Description: {{ poi.description }}</p>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-modal-view>

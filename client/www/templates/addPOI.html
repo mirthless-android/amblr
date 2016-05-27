@@ -12,8 +12,8 @@
         <span class="input-label">
           Rate This POI
         </span>
-          <ion-radio ng-model="currentPOI.type" value="good"><i class="icon ion-happy larger"></i></ion-radio>
-          <ion-radio ng-model="currentPOI.type" value="bad"><i class="icon ion-sad larger"></i></ion-radio>
+          <ion-radio ng-model="currentPOI.type" value="good" name="type"><i class="icon ion-happy larger"></i></ion-radio>
+          <ion-radio ng-model="currentPOI.type" value="bad"name="type"><i class="icon ion-sad larger"></i></ion-radio>
           <!-- <ion-radio ng-model="currentPOI.type" ng-value="meh">Meh</ion-radio> -->
       </label>
       <label class="item item-input item-stacked-label">
@@ -24,6 +24,24 @@
         <span class="input-label">Description</span>
         <input type="text" placeholder="Describe what this POI is" ng-model="currentPOI.description">
       </label>
+      <div ng-click="showRoutes()"><label class="item item-input item-stacked-label"><span class="input-label add-to-route-header">Add to Route</span></label></div>
+      <label class="item item-input item-stacked-label item-remove-animate" ng-show="showRouteList">
+        <ion-list>
+          <div class="existing-routes" ng-repeat="(routeID, routeName ) in allRoutes">
+            <ion-radio ng-model="currentPOI.route" ng-value="routeName" ng-click="handleNewRoute(false)" name="routes">{{ routeName }}</ion-radio>
+          </div>
+          <!-- separate radio to display the text input for new route -->
+          <ion-radio ng-value="" ng-model="currentPOI.route" name="routes" ng-click="handleNewRoute(true)">Add new Route</ion-radio>
+
+        </ion-list>
+      </label>
+      <!-- hidden text input to show if the new route radio is selected -->
+      <div class="item-remove-animate" ng-show="addNewRoute">
+        <label class="item item-input item-stacked-label" >
+          <span class="input-label">New Route</span>
+          <input type="text" ng-model="currentPOI.route" name="routes" placeholder="Route Name" />
+        </label>
+      </div>
       <div class="row">
       <button class="button col block button-dark" ng-click="savePOI()">Add POI</button>
       </div>

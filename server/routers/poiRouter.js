@@ -6,5 +6,6 @@ var poiController = require('../controllers/poiController.js');
 // the path '/api/pois' is already prepended to all routes based on app.use statement in server.js
 poiRouter.route('/').get(poiController.getAllPOI);
 poiRouter.route('/').post(poiController.savePOI);
+poiRouter.route('/:id').delete(poiController.deletePOI);
 
 module.exports = poiRouter;

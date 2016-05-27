@@ -1,0 +1,37 @@
+<ion-modal-view class="routeManage">
+  <div class="bar bar-header bar-dark">
+    <h1 class="title">Manage Routes</h1>
+    <div class="buttons">
+      <button class="button button-clear" ng-click="hideRouteManageModal()">Cancel</button>
+    </div>
+  </div>
+  <ion-content class="has-header">
+    <div ng-hide="currentRoute">
+      <h4>&nbsp;&nbsp;Select Route to Manage:</h4>
+      <ion-list can-swipe="true">
+        <ion-item ng-repeat="route in availRoutes" ng-click="$parent.selectRoute(route._id, route.name)">
+          {{ route.name }}
+          <ion-option-button class="button-assertive" ng-click="$parent.removeRoute(route._id)">
+            Remove
+          </ion-option-button>
+        </ion-item>
+      </ion-list>
+    </div>
+    <div ng-show="currentRoute">
+      <h4>&nbsp;&nbsp;Managing Route: {{ currentRoute.name }}</h4>
+      <ion-list ng-model="routePOIs" can-swipe="true">
+        <ion-item ng-drag="true" ng-drag-data="{ type: 'routePOI', poiID: poi._id}" ng-drop="true" ng-drop-success="onDropComplete($data, $event, poi._id)" ng-repeat="poi in routePOIs">
+          {{ poi.title }}
+          <ion-option-button class="button-assertive" ng-click="removePOI(poi._id)">
+            Remove
+          </ion-option-button>
+        </ion-item>
+      </ion-list>
+      <div ng-drop="true" ng-drop-success="onDropComplete($data, $event, null)">
+        <button class="button col block button-dark" ng-click="saveSelected()" ng-disabled="disableSave">Save</button>
+      </div>
+      <br/>
+      <button class="button col block button-dark" ng-click="resetSelected()">Back</button>
+    </div>
+  </ion-content>
+</ion-modal-view>

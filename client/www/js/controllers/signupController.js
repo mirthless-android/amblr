@@ -1,5 +1,5 @@
 angular.module('amblr.signup', [])
-.controller('signupCtrl', function($scope, $ionicModal, $http, $location) {
+.controller('signupCtrl', function($scope, $ionicModal, $http, $location, $ionicPopup, ENV) {
   // Form data for the signup modal
   $scope.signupData = {};
 
@@ -20,22 +20,28 @@ angular.module('amblr.signup', [])
     $scope.modal.show();
   };
 
+  $scope.showAlert = function() {
+    $ionicPopup.alert({
+      title: 'Error',
+      template: 'Oops! There was a problem with your sign up form. Please try again.'
+    });
+  };
+
   // Perform the signup action when the user submits the signup form
   $scope.doSignup = function() {
     console.log('Doing signup with username: ', $scope.signupData.username);
     $http({
       method: 'POST',
-      url: '/api/users/signup',
+      url: ENV.apiEndpoint + '/api/users/signup',
       data: $scope.signupData
     })
     .then(function(res) {
       $scope.closeSignup();
-      
-      // TODO: need to test if signup was successful & if yes, redirect to private page
-      // right now, anyone who fills in the signin form goes to the private page
-      
-      $location.path('/menu-private/home');
+      if (res.status === 200) { // if sign up is successful, go to private menu
+        $location.path('/menu/home');
+      } 
     }, function(err) {
+      $scope.showAlert(); // if sign up is not successful, show alert message
       throw new Error ('Error signing up user: ' + $scope.signupData.username + ', error: ' + err);
     });
     
