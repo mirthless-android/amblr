@@ -115,7 +115,7 @@ module.exports = function(grunt) {
         constants: {
           ENV: {
             name: 'production',
-            apiEndpoint: 'https://192.241.235.109:443'
+            apiEndpoint: 'https://amblr.info:443'
           }
         }
       }
