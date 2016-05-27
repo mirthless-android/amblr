@@ -158,7 +158,7 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
     .then(function(routes) {
       //routes returns an array of objects. 
       //Need to loop through and create an object with the id as keys for easy look up to add to markers
-      for (let route of routes) {
+      for (var route in routes) {
         //make key of allRoutes equal to the route's id and the value equal to the name
         $scope.allRoutes[route._id] = route.name;
       }
