@@ -7,7 +7,14 @@ client/plugins/
 client/resources/
 client/dist
 client/www/js/config.js
-
+_whiteboards
 server/node_modules
-server/logs
+server/logs/logs.log
+logs
 npm-debug.log
+
+# VS CODE SPECIFIC
+jsconfig.json
+typings.json
+typings
+

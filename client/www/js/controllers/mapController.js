@@ -6,41 +6,25 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
     libraries: 'weather,geometry,visualization'
   });
 })
-.controller('MapCtrl', function($scope, $state, $cordovaGeolocation, POIs,
+.controller('MapCtrl', function($scope, $http, $state, $cordovaGeolocation, POIs,
   $ionicLoading, uiGmapGoogleMapApi, uiGmapIsReady, $log, $ionicSideMenuDelegate,
-  $window, Location, $timeout, $location) {
+  $window, Location, Routes, $timeout, $location, $controller, $rootScope, ENV) {
+
+
+  var addPOIControllerScope = $scope.$new();
+  $controller('addPOIController',{ $scope : addPOIControllerScope });
 
   $scope.POIs = [];
 
   var lat = 37.786439;
   var long = -122.408199;
-
   // create dummy dropMarker, will be replaced in placeMarker function when this 
   // didn't exist, would get the following error when attempting to drop marker:
   // gMarker.key undefined and it is REQUIRED!! error 
   $scope.dropMarker = {
     id: 0
   };
-  
-  // $scope.currentPOI = {
-  //   lat: -1,
-  //   long: -1,
-  //   type: '',
-  //   description: '',
-  //   title: ''
-  // };
-
-  $scope.resetPOI = function () {
-    $scope.currentPOI = {
-      lat: -1,
-      long: -1,
-      type: 'good',
-      description: '',
-      title: ''
-    };
-  };
-  // sets a default POI
-  $scope.resetPOI();
+    $scope.dropControl = {};
 
   $scope.map = {
     center: {
@@ -95,6 +79,9 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
         },
         show: false,
         templateUrl: '../../templates/POIInfoWindow.html',
+        templateParameter: {
+          route: 'test route'
+        }
     },
     droppedInfoWindow: {
         coords: {
@@ -107,19 +94,20 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
           pixelOffset: new $window.google.maps.Size(0, -35),
         },
         show: false,
-        templateUrl: '../../templates/addPOIInfoWindow.html',
-        templateParameter: {
-          currentPOI: $scope.currentPOI
-        },
+        templateUrl: '../../templates/addPOIInfoWindow.html'
     }
   };
-
+  
+  /* hacks to get overlay to work */
+  $scope.overlay = new $window.google.maps.OverlayView();
+  $scope.overlay.draw = function() {}; // empty function required
+  
+  var theMap = {};
   //use a promise to tell when the map is ready to be interacted with
   uiGmapIsReady.promise()
   .then(function (instances) {
-
-    console.log('equals = ' + (instances[0].map === $scope.map.control.getGMap()));
-
+    $scope.overlay.setMap(instances[0].map);
+    
     // retrieve all the POIs from server and place them on map
     $scope.addNewPOIs();
 
@@ -132,6 +120,20 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
     console.log('error in doing things when map is ready', err);
   });
 
+
+  $scope.userID = null;
+
+  $scope.getUserID = function() {
+    $http.get(ENV.apiEndpoint + '/checkuserid')
+    .success(function(data) {
+      $rootScope.userID = data;
+    })
+    .error(function(data) {
+      console.log('error: ' + data);
+    });
+  };
+
+  $scope.getUserID();
   /*
     Function to set the show property of the infoWindow on markers 
     that is needed when a user clicks the close of the infoWindow.
@@ -149,35 +151,33 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
     //       should add a button when map is dragged to update map that
     //       gets POIs in the area its in.  otherwise would need to 
     //       dynamically get them when user dragging which would be difficult
-    POIs.getPOIs()
+    
+    //call to get routes so that they will have access to that information to add in
+    $scope.allRoutes = {};
+    Routes.getRoutes()
+    .then(function(routes) {
+      //routes returns an array of objects. 
+      //Need to loop through and create an object with the id as keys for easy look up to add to markers
+      for (var route of routes) {
+        //make key of allRoutes equal to the route's id and the value equal to the name
+        $scope.allRoutes[route._id] = route.name;
+      }
+      return $scope.allRoutes;
+    })
+    .then(function() {
+      return POIs.getPOIs();
+    })
+
+    // POIs.getPOIs()
     .then(function(response) {
-      $scope.POIs = response.data;
-
+      
       var markers = [];
-     
-      // TODO: abstract the creation of markers into a function
+      $scope.POIs = response.data;
       /*
-        Create a marker object for each one retrieved from the db.
-
-        Example marker model for markers array:
-        {
-          id: 1,
-          icon: '../../img/poi.png',
-          latitude: 37.7938494,
-          longitude: -122.419234,
-          showWindow: false,
-          options: {
-            labelContent: '[46,-77]',
-            labelAnchor: "22 0",
-            labelClass: "marker-labels"
-          }
-        }
-
         Documentation: https://angular-ui.github.io/angular-google-maps/#!/api/markers
         This is connected to the google map through the ui-gmap-markers models attribute in maps.html
       */
       for (var i=0; i < $scope.POIs.length; i++) {
-
         var icon = '';
         if ($scope.POIs[i].type === 'good') {
            icon = '../../img/star-3.png'
@@ -186,16 +186,17 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
         }
 
         markers.push({
-          id: i,
+          id: $scope.POIs[i]._id,
           latitude: $scope.POIs[i].lat,
           longitude: $scope.POIs[i].long,
           icon: icon,
           description: $scope.POIs[i].description,
           title: $scope.POIs[i].title,
           type: $scope.POIs[i].type,
+          route: $scope.allRoutes[$scope.POIs[i].routeId],
+          userID: $scope.POIs[i].userID,
           events: {
             click: function (map, eventName, marker) {
-                
               var lat = marker.latitude;
               var lon = marker.longitude;
               var infoWindow = $scope.map.infoWindow;
@@ -214,6 +215,10 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
               infoWindow.coords.title = marker.title;
               infoWindow.coords.type = marker.type;
               infoWindow.coords.description = marker.description;
+              infoWindow.coords.route = marker.route;
+              infoWindow.coords.id = marker.id;
+              infoWindow.coords.deletePOI = $scope.deletePOI;
+              infoWindow.coords.userID = marker.userID;
               infoWindow.show = true;
             }
           },
@@ -231,12 +236,14 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
   $scope.setMapCenterCurrent = function () {
     Location.getCurrentPos()
       .then(function(pos) {
-        console.log('pos from factory call', pos);
       //   //once position is found, open up modal form
         $scope.map.center = {
           latitude: pos.lat,
           longitude: pos.long
         };
+        $scope.map.zoom = 15;
+        $rootScope.coordinates = [$scope.map.center.longitude, $scope.map.center.latitude];
+
       })
       .catch(function(err) {
         console.log('error in getting current pos', err);
@@ -251,13 +258,20 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
   $scope.$on('centerMap', function () {
     $scope.setMapCenterCurrent();
   });
-  $scope.$on('reloadPOIs', function() {
+  $scope.$on('recenterMap', function(event, args) {
+    $scope.map.center = {
+          latitude: args.newCenter.lat,
+          longitude: args.newCenter.lng
+        };
+    $rootScope.coordinates = [$scope.map.center.longitude, $scope.map.center.latitude];
+  });
+  $scope.$on('reloadPOIs', function () {
     $scope.addNewPOIs();
   });
 
   // delete the user added marker (dropMarker object)
   $scope.removeMarker = function() {
-    if (angular.isDefined($scope.dropMarker)) {
+      if (angular.isDefined($scope.dropMarker)) {
       delete $scope.dropMarker;
     }
   };
@@ -270,7 +284,8 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
   $scope.placeMarker = function(latLng)  {
 
     $scope.removeMarker();
-
+    Routes.clearDirections();
+    
     $scope.$apply( function() {
       $scope.dropMarker = {
         id: 1,
@@ -305,16 +320,11 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
             //update droppedInfoWindow lat/long
             $scope.map.droppedInfoWindow.coords.latitude = marker.position.lat();
             $scope.map.droppedInfoWindow.coords.longitude = marker.position.lng();
-            $scope.currentPOI.latitude = marker.position.lat();
-            $scope.currentPOI.longitude = marker.position.lng();
-
           },
           click: function(marker, eventName, args) {
             // set the lat/long of the InfoWindow to the marker clicked on
             $scope.map.droppedInfoWindow.coords.latitude = marker.position.lat();
             $scope.map.droppedInfoWindow.coords.longitude = marker.position.lng();
-            $scope.currentPOI.lat= marker.position.lat();
-            $scope.currentPOI.long = marker.position.lng();
             $scope.map.droppedInfoWindow.show = true;
           }
         }
@@ -338,22 +348,46 @@ angular.module('amblr.map', ['uiGmapgoogle-maps'])
     delete $scope.placeMarkerPromise;
   };
 
-  $scope.savePOI = function() {
-     console.log('saving POI: ' + JSON.stringify($scope.currentPOI));
-     POIs.savePOI($scope.currentPOI)
-      .then(function(poi) {
-        console.log('poi saved', poi);
-        //clear out currentPOI
-        $scope.map.droppedInfoWindow.show = false;
-        $scope.resetPOI();
+  $scope.saveDropMarkerPOI = function() {
+    if (!$scope.dropMarker) {
+      $scope.removeMarker();
+    }
+    addPOIControllerScope.currentPOI.lat = $scope.dropMarker.coords.latitude;
+    addPOIControllerScope.currentPOI.long = $scope.dropMarker.coords.longitude;
+    addPOIControllerScope.currentPOI.route = null;
+    addPOIControllerScope.currentPOI.userID = $rootScope.userID;
+    addPOIControllerScope.showRouteList = false;//this is so that when modal shows, the route list is hidden
+    addPOIControllerScope.modal.show();
+    $scope.map.droppedInfoWindow.show = false;
+    $scope.removeMarker();
+  };
+  
+  $scope.$on('newMarkerDrop', function(event, x, y) {
+    var geocoords = $scope.overlay.getProjection().fromContainerPixelToLatLng(new google.maps.Point(x, y));
+    $scope.placeMarker(geocoords);
+    google.maps.event.trigger($scope.dropControl.getGMarkers()[0], 'click');
+  });
 
-        // $window.location.reload();
-        $scope.removeMarker();
-        $scope.addNewPOIs();
-      })
-      .catch(function(err) {
-        console.log('error in saving poi to database', err);
-      });
+  $scope.deletePOI = function (poiID) {
+    POIs.deletePOI(poiID)
+    .then(function() {
+      $scope.map.infoWindow.show = false;
+      $scope.removeMarker();
+
+      for (var i = 0; i < $scope.map.POIMarkers.length; i++) {
+        if ($scope.map.POIMarkers[i].id === poiID) {
+          $scope.map.POIMarkers.splice(i, 1);
+          break;
+        }
+      }
+      Routes.clearDirections();
+      return Routes.getRoutes()
+    })
+    .then(function() {
+        Routes.getDirections(POIs.routeFilter._id);
+    });
+    
+    
   };
 
 });

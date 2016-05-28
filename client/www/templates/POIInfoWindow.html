@@ -1,5 +1,6 @@
 <div class="POIbox">
     <p class="title {{ coords.type }}">{{ coords.title }} </p>
-    </p>Description:  {{ coords.description }}</p>
-
+    <p>Description:  {{ coords.description }}</p>
+    <p ng-if="coords.route">Route: {{ coords.route }} </p>
+    <button id="deleteButton" ng-click="coords.deletePOI(coords.id)">Delete this POI</button>
 </div>
