@@ -7,7 +7,6 @@ client/plugins/
 client/resources/
 client/dist
 client/www/js/config.js
-client/www/lib/*
 _whiteboards
 server/node_modules
 server/logs/logs.log
